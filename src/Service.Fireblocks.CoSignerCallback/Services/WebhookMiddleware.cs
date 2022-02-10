@@ -4,6 +4,7 @@ using MyJetWallet.Sdk.Service;
 using Service.Fireblocks.CoSignerCallback.Models;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 // ReSharper disable InconsistentLogPropertyNaming
@@ -35,14 +36,6 @@ namespace Service.Fireblocks.CoSignerCallback.Services
         /// </summary>
         public async Task Invoke(HttpContext context)
         {
-            //if (!context.Request.Path.StartsWithSegments("/fireblocks", StringComparison.OrdinalIgnoreCase))
-            //{
-            //    _logger.LogInformation("Receive call to {path}, method: {method}", context.Request.Path,
-            //        context.Request.Method);
-
-            //    return;
-            //}
-
             using var activity = MyTelemetry.StartActivity("Receive fireblocks cosigner call");
 
             var path = context.Request.Path;
@@ -73,7 +66,8 @@ namespace Service.Fireblocks.CoSignerCallback.Services
             body = await reader.ReadToEndAsync();
             //bodyArray = buffer.GetBuffer();
 
-            _logger.LogInformation($"'{path}' | {query} | {method}\n{body}\n{signature}");
+            var headers = "Headers: " + string.Join("\n", context.Request.Headers.Select(x => $"{x.Key}: {x.Value}"));
+            _logger.LogInformation($"'{path}' | {query} | {method}\n{body}\n{signature}\n{headers}");
 
             //Fireblocks - Signature = Base64(RSA512(WEBHOOK_PRIVATE_KEY, SHA512(eventBody)))
 
