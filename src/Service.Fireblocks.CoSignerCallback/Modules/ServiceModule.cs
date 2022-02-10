@@ -1,11 +1,8 @@
 ﻿using Autofac;
+using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.NoSql;
-using MyJetWallet.Sdk.ServiceBus;
-using Service.AssetsDictionary.Client;
-using Service.Blockchain.Wallets.Client;
-using Service.Blockchain.Wallets.MyNoSql.Addresses;
-using Service.Blockchain.Wallets.MyNoSql.AssetsMappings;
-using Service.Fireblocks.Api.Client;
+using Service.Fireblocks.CoSignerCallback.Services;
+using Service.Fireblocks.Signer.NoSql;
 
 namespace Service.Fireblocks.CoSignerCallback.Modules
 {
@@ -13,6 +10,11 @@ namespace Service.Fireblocks.CoSignerCallback.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
+            //var logger = Program.LogFactory.CreateLogger<LoggerMiddleware>();
+            var encryptionService = new SymmetricEncryptionService(Program.EnvSettings.GetEncryptionKey());
+            builder.RegisterInstance(encryptionService);
+
+            builder.RegisterMyNoSqlWriter<FireblocksApiKeysNoSql>(() => Program.Settings.MyNoSqlWriterUrl, FireblocksApiKeysNoSql.TableName);
         }
     }
 }

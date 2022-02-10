@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
+using Service.Fireblocks.CoSignerCallback.Grpc;
 using Service.Fireblocks.CoSignerCallback.Modules;
 using Service.Fireblocks.CoSignerCallback.Services;
 using SimpleTrading.ServiceStatusReporterConnector;
@@ -44,6 +45,7 @@ namespace Service.Fireblocks.CoSignerCallback
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapGrpcSchema<EncryptionService, IEncryptionService>();
                 endpoints.MapGrpcSchemaRegistry();
 
                 endpoints.MapGet("/",
