@@ -40,21 +40,20 @@ namespace Service.Fireblocks.CoSignerCallback.Services
         /// </summary>
         public async Task Invoke(HttpContext context)
         {
+            var path = context.Request.Path;
+            var method = context.Request.Method;
+            var query = context.Request.QueryString;
+            var body = "--none--";
+
             if (context.Request.ContentType == "application/grpc")
             {
+                _logger.LogInformation($"EXECUTING GRPC METHOD'{path}' | {query} | {method}\n");
                 await _next.Invoke(context);
 
                 return;
             }
 
             using var activity = MyTelemetry.StartActivity("Receive fireblocks cosigner call");
-
-            var path = context.Request.Path;
-            var method = context.Request.Method;
-
-            var body = "--none--";
-            var query = context.Request.QueryString;
-            byte[] bodyArray;
 
             if (method != "POST")
             {
