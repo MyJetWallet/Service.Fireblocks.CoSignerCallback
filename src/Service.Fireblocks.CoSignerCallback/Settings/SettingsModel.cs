@@ -14,9 +14,6 @@ namespace Service.Fireblocks.CoSignerCallback.Settings
         [YamlProperty("FireblocksCoSignerCallback.ElkLogs")]
         public LogElkSettings ElkLogs { get; set; }
 
-        [YamlProperty("FireblocksCoSignerCallback.MyNoSqlReaderHostPort")]
-        public string MyNoSqlReaderHostPort { get; set; }
-
         [YamlProperty("FireblocksCoSignerCallback.MyNoSqlWriterUrl")]
         public string MyNoSqlWriterUrl { get; set; }
     }

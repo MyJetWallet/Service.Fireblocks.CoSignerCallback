@@ -10,7 +10,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace Service.Fireblocks.CoSignerCallback.Services
+namespace Service.Fireblocks.CoSignerCallback.Domain
 {
     public class SymmetricEncryptionService
     {

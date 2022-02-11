@@ -1,4 +1,6 @@
-﻿using MyNoSqlServer.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using MyNoSqlServer.Abstractions;
+using Service.Fireblocks.CoSignerCallback.Domain;
 using Service.Fireblocks.CoSignerCallback.Grpc;
 using Service.Fireblocks.CoSignerCallback.Grpc.Models.Encryption;
 using Service.Fireblocks.Signer.NoSql;
@@ -11,13 +13,19 @@ namespace Service.Fireblocks.CoSignerCallback.Services
     public class EncryptionService : IEncryptionService
     {
         private readonly SymmetricEncryptionService _symmetricEncryptionService;
-        private readonly IMyNoSqlServerDataWriter<FireblocksApiKeysNoSql> _myNoSqlServerDataReader;
+        private readonly IMyNoSqlServerDataWriter<CoSignerApiKeysNoSql> _myNoSqlServerDataReader;
+        private readonly KeyActivator _keyActivator;
+        private readonly ILogger<EncryptionService> _logger;
 
         public EncryptionService(SymmetricEncryptionService symmetricEncryptionService,
-            IMyNoSqlServerDataWriter<FireblocksApiKeysNoSql> myNoSqlServerDataReader)
+            IMyNoSqlServerDataWriter<CoSignerApiKeysNoSql> myNoSqlServerDataReader,
+            KeyActivator keyActivator,
+            ILogger<EncryptionService> logger)
         {
             _symmetricEncryptionService = symmetricEncryptionService;
             _myNoSqlServerDataReader = myNoSqlServerDataReader;
+            _keyActivator = keyActivator;
+            _logger = logger;
         }
 
         public Task<EncryptionResponse> EncryptAsync(EncryptionRequest request)
@@ -32,15 +40,24 @@ namespace Service.Fireblocks.CoSignerCallback.Services
 
         public async Task<SetApiKeyResponse> SetApiKeysAsync(SetApiKeyRequest request)
         {
-            var apiKey = _symmetricEncryptionService.Encrypt(request.ApiKey);
+            _logger.LogInformation("Setting keys");
+
+            var coSignerKey = request.CoSignerPubKey
+                .Replace("-----BEGIN PUBLIC KEY-----", "")
+                .Replace("-----END PUBLIC KEY-----", "");
+
+            var coSignerKeyEnc = _symmetricEncryptionService.Encrypt(coSignerKey); 
             var privateKey = request.PrivateKey
                 .Replace("-----BEGIN RSA PRIVATE KEY-----", "")
                 .Replace("-----END RSA PRIVATE KEY-----", "");
+
             var privateKeyEnc = _symmetricEncryptionService.Encrypt(privateKey);
 
-            await _myNoSqlServerDataReader.InsertOrReplaceAsync(FireblocksApiKeysNoSql.Create(apiKey, privateKeyEnc));
+            await _myNoSqlServerDataReader.InsertOrReplaceAsync(CoSignerApiKeysNoSql.Create(coSignerKeyEnc, privateKeyEnc));
 
-            //_keyActivator.ActivateKeys(request.ApiKey, privateKey);
+            _keyActivator.Activate(request.CoSignerPubKey, privateKey);
+
+            _logger.LogInformation("Keys are set");
 
             return new SetApiKeyResponse { };
         }

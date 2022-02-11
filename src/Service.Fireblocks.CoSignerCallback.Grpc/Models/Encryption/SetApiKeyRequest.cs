@@ -14,7 +14,7 @@ namespace Service.Fireblocks.CoSignerCallback.Grpc.Models.Encryption
         public string PrivateKey { get; set; }
 
         [DataMember(Order = 2)]
-        public string ApiKey { get; set; }
+        public string CoSignerPubKey { get; set; }
     }
 
     [DataContract]

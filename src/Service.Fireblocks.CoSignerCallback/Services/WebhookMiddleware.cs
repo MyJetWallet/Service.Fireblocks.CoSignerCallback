@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Service;
-using Service.Fireblocks.CoSignerCallback.Models;
+using Service.Fireblocks.CoSignerCallback.Domain;
+using Service.Fireblocks.CoSignerCallback.Domain.Exceptions;
+using Service.Fireblocks.CoSignerCallback.Domain.Models;
 using System;
 using System.IO;
 using System.Linq;
@@ -17,6 +19,7 @@ namespace Service.Fireblocks.CoSignerCallback.Services
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<WebhookMiddleware> _logger;
+        private readonly JwtTokenService _jwtTokenService;
 
 
         /// <summary>
@@ -24,11 +27,12 @@ namespace Service.Fireblocks.CoSignerCallback.Services
         /// </summary>
         public WebhookMiddleware(
             RequestDelegate next,
-            ILogger<WebhookMiddleware> logger)
+            ILogger<WebhookMiddleware> logger,
+            JwtTokenService jwtTokenService)
         {
             _next = next;
             _logger = logger;
-
+            _jwtTokenService = jwtTokenService;
         }
 
         /// <summary>
@@ -36,6 +40,13 @@ namespace Service.Fireblocks.CoSignerCallback.Services
         /// </summary>
         public async Task Invoke(HttpContext context)
         {
+            if (context.Request.ContentType == "application/grpc")
+            {
+                await _next.Invoke(context);
+
+                return;
+            }
+
             using var activity = MyTelemetry.StartActivity("Receive fireblocks cosigner call");
 
             var path = context.Request.Path;
@@ -43,13 +54,11 @@ namespace Service.Fireblocks.CoSignerCallback.Services
 
             var body = "--none--";
             var query = context.Request.QueryString;
-            var signature = "";
-            //var signature = context.Request.Headers["Fireblocks-Signature"].FirstOrDefault();
             byte[] bodyArray;
 
             if (method != "POST")
             {
-                _logger.LogInformation($"'{path}' | {query} | {method}\nNO-BODY\n{signature}");
+                _logger.LogInformation($"'{path}' | {query} | {method}\nNO-BODY");
                 context.Response.StatusCode = 200;
                 _logger.LogWarning("Message from Fireblocks: @{context} method is not POST", body);
                 return;
@@ -64,28 +73,9 @@ namespace Service.Fireblocks.CoSignerCallback.Services
             using var reader = new StreamReader(buffer);
 
             body = await reader.ReadToEndAsync();
-            //bodyArray = buffer.GetBuffer();
 
             var headers = "Headers: " + string.Join("\n", context.Request.Headers.Select(x => $"{x.Key}: {x.Value}"));
-            _logger.LogInformation($"'{path}' | {query} | {method}\n{body}\n{signature}\n{headers}");
-
-            //Fireblocks - Signature = Base64(RSA512(WEBHOOK_PRIVATE_KEY, SHA512(eventBody)))
-
-            //if (!CryptoProvider.VerifySignature(bodyArray, Convert.FromBase64String(signature)))
-            //{
-            //    //context.Response.StatusCode = 401;
-            //    var bAStr = Convert.ToBase64String(bodyArray);
-            //    _logger.LogWarning("Message from Fireblocks: {context} webhook can't be verified", new { 
-            //        Body = body,
-            //        Signature = signature, 
-            //        BodyBase64 = bAStr });
-
-            //    //return;
-            //} else
-            //{
-            //    var bAStr = Convert.ToBase64String(bodyArray);
-            //    _logger.LogInformation("Body Array: {context} webhook is verified", new { Signature = signature, Body = bAStr });
-            //}
+            _logger.LogInformation($"'{path}' | {query} | {method}\n{body}\n{headers}");
 
             foreach (var header in context.Request.Headers)
             {
@@ -96,12 +86,19 @@ namespace Service.Fireblocks.CoSignerCallback.Services
 
             try
             {
-                var request = Newtonsoft.Json.JsonConvert.DeserializeObject<CallbackRequestWithId>(body);
+                var request = _jwtTokenService.GetRequest(body);
 
                 if (request == null || string.IsNullOrEmpty(request.RequestId))
                 {
                     _logger.LogError("Can't get request Id: (Impossible to deserialize) {context}", body);
                     context.Response.StatusCode = 400;
+                    return;
+                }
+
+                if (_jwtTokenService.Validate(body))
+                {
+                    _logger.LogError("Can't validate signature from cosigner {context}", body);
+                    context.Response.StatusCode = 401;
                     return;
                 }
 
@@ -112,13 +109,20 @@ namespace Service.Fireblocks.CoSignerCallback.Services
                     RequestId = request.RequestId,
                     RejectionReason = "",
                 };
-                var responseStr = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                var responseStr = _jwtTokenService.Create(response);
                 await context.Response.WriteAsync(responseStr);
+            }
+            catch (ApiKeysAreNotActivatedException e)
+            {
+                _logger.LogError(e, "CoSigner Callback Handler keys are not activated! {context}", body);
+                context.Response.StatusCode = 500;
+                return;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Can't get request Id: (Impossible to deserialize) {context}", body);
+                _logger.LogError(e, "Unhandled error {context}", body);
                 context.Response.StatusCode = 400;
+                return;
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace Service.Fireblocks.CoSignerCallback.Models
+﻿namespace Service.Fireblocks.CoSignerCallback.Domain.Models
 {
     public class CallbackRequestWithId
     {

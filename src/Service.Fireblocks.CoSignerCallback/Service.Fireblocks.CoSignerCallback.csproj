@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Service.Fireblocks.CoSignerCallback.Domain\Service.Fireblocks.CoSignerCallback.Domain.csproj" />
     <ProjectReference Include="..\Service.Fireblocks.CoSignerCallback.Grpc\Service.Fireblocks.CoSignerCallback.Grpc.csproj" />
     <ProjectReference Include="..\Service.Fireblocks.CoSignerCallback.ServiceBus\Service.Fireblocks.CoSignerCallback.ServiceBus.csproj" />
   </ItemGroup>
