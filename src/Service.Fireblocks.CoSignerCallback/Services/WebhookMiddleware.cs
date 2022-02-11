@@ -109,6 +109,9 @@ namespace Service.Fireblocks.CoSignerCallback.Services
                     RejectionReason = "",
                 };
                 var responseStr = _jwtTokenService.Create(response);
+
+                _logger.LogInformation($"Response: '{path}' | {query} | {method}\n{responseStr}\n");
+
                 await context.Response.WriteAsync(responseStr);
             }
             catch (ApiKeysAreNotActivatedException e)
