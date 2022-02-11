@@ -94,7 +94,7 @@ namespace Service.Fireblocks.CoSignerCallback.Services
                     return;
                 }
 
-                if (_jwtTokenService.Validate(body))
+                if (!_jwtTokenService.Validate(body))
                 {
                     _logger.LogError("Can't validate signature from cosigner {context}", body);
                     context.Response.StatusCode = 401;
