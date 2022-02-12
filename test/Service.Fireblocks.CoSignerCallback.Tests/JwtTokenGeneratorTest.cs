@@ -72,6 +72,7 @@ namespace Service.Fireblocks.Webhook.Tests
             //    RequestId = request.RequestId
             //});
 
+            //tokenGenerated = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJBY3Rpb24iOiJBUFBST1ZFIiwiUmVxdWVzdElkIjoiZTgwN2VlMTUtZjQxZC00NjRiLWI5N2UtMWUyMWEwYjg1ZjIwIiwiUmVqZWN0aW9uUmVhc29uIjoiIn0.bQrvbS3piMXggv-vh2Av_j3m63h7g2Pt4mybzc6xm3kHMHifhRXCT7m_4h1Sb_NjjyMmamW90AS5T_8d7j0Sw5zliAXl3lwVZmxxucsRf_aLjd0HBQbU7mbvJsbuRVudZrjdlKm6wjdXO5pKSnRvNmYO7fTvX-pWCopnHFBazHACeqz1MA_Ogs_tFjV6-3FOmsaEkbqxSnxbOT-L57RtYOpeGik9FfeuuUpfosXz0SRqrxMlJn1MSW_aMpdrG5tB3prcrOjH1s03pGZ4xsHQGHW0G4RkygnDn3zRV9CSzOea1k_Fv0-0mktf_Kg8cKg7xGzydl7gi7AG_GlEwaVKoQ";
             //var res = generator.Validate(tokenGenerated, pubKey);
         }
     }

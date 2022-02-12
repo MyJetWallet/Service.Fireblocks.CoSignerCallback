@@ -17,7 +17,12 @@ namespace Service.Fireblocks.CoSignerCallback.Domain
         {
             CheckThatKeysAreActivated();
 
-            var token = JWT.RS256.Create(callbackResponse, _keyActivator.PrivateKey);
+            var token = JWT.RS256.Create(new System.Collections.Generic.Dictionary<string, object>()
+            {
+                {"action" ,callbackResponse.Action},
+                {"requestId" ,callbackResponse.RequestId},
+                {"rejectionReason" ,callbackResponse.RejectionReason}
+            }, _keyActivator.PrivateKey);
 
             return token;
         }
