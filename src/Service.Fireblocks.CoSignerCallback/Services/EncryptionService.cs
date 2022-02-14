@@ -55,7 +55,7 @@ namespace Service.Fireblocks.CoSignerCallback.Services
 
             await _myNoSqlServerDataReader.InsertOrReplaceAsync(CoSignerApiKeysNoSql.Create(coSignerKeyEnc, privateKeyEnc));
 
-            _keyActivator.Activate(request.CoSignerPubKey, privateKey);
+            _keyActivator.Activate(coSignerKey, privateKey);
 
             _logger.LogInformation("Keys are set");
 
