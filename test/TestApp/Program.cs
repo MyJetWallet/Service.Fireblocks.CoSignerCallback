@@ -23,10 +23,10 @@ namespace TestApp
             var factory = new FireblocksCoSignerCallbackClientFactory("http://fireblocks-cosignercallback.spot-services.svc.cluster.local:80");
             var encryptionService = factory.GetEncryptionService();
 
-            Console.WriteLine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cosigner-pub.pem"));
-            Console.WriteLine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private-new.pem"));
-            var coSignerPublicKey = await File.ReadAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cosigner-pub.pem"));
-            var privateKey = await File.ReadAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private-new.pem"));
+            Console.WriteLine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cosigner-pub-prod.pem"));
+            Console.WriteLine(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private-prod.pem"));
+            var coSignerPublicKey = await File.ReadAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cosigner-pub-prod.pem"));
+            var privateKey = await File.ReadAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private-prod.pem"));
 
             await encryptionService.SetApiKeysAsync(new Service.Fireblocks.CoSignerCallback.Grpc.Models.Encryption.SetApiKeyRequest
             {
